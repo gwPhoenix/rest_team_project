@@ -23,13 +23,8 @@
 ### 3. GitHub Pages 배포
 
 ```bash
-# 레포지토리 클론
 git clone https://github.com/gwPhoenix/rest_team_project.git
 cd rest_team_project
-
-# Firebase config 설정 후
-git add .
-git commit -m "feat: AI 자기소개서·면접 코치 구현"
 git push origin main
 ```
 
