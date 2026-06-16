@@ -31,6 +31,16 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
+  async function signInWithEmail(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  }
+
+  async function signUpWithEmail(email, password) {
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) throw error
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
   }
@@ -41,7 +51,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, apiKey, setApiKey, signInWithKakao, signOut }}>
+    <AuthContext.Provider value={{ user, loading, apiKey, setApiKey, signInWithKakao, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -3,19 +3,61 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
 export default function LoginPage() {
-  const { signInWithKakao } = useAuth()
+  const { signInWithKakao, signInWithEmail, signUpWithEmail } = useAuth()
   const toast = useToast()
-  const [loading, setLoading] = useState(false)
+
+  const [tab,      setTab]      = useState('login')
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [done,     setDone]     = useState(false)
+
+  async function handleEmail(e) {
+    e.preventDefault()
+    if (!email || !password) { toast('이메일과 비밀번호를 입력해주세요.', 'warning'); return }
+    if (password.length < 6)  { toast('비밀번호는 6자 이상이어야 합니다.', 'warning'); return }
+
+    setLoading(true)
+    try {
+      if (tab === 'login') {
+        await signInWithEmail(email, password)
+      } else {
+        await signUpWithEmail(email, password)
+        setDone(true)
+      }
+    } catch (err) {
+      const msg = err.message?.includes('Invalid login') ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+                : err.message?.includes('already registered') ? '이미 가입된 이메일입니다.'
+                : err.message || '오류가 발생했습니다.'
+      toast(msg, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleKakao() {
     setLoading(true)
     try {
       await signInWithKakao()
     } catch (err) {
-      toast('로그인에 실패했습니다: ' + err.message, 'error')
+      toast('카카오 로그인 실패: ' + err.message, 'error')
       setLoading(false)
     }
   }
+
+  if (done) return (
+    <div className="auth-overlay">
+      <div className="auth-card" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
+        <h2 style={{ marginBottom: 8 }}>이메일을 확인해주세요</h2>
+        <p style={{ color: 'var(--txt-2)', marginBottom: 24 }}>
+          <strong>{email}</strong>로 인증 링크를 보냈습니다.<br />
+          링크를 클릭하면 로그인됩니다.
+        </p>
+        <button className="btn btn-ghost btn-full" onClick={() => setDone(false)}>다시 시도</button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="auth-overlay">
@@ -26,25 +68,33 @@ export default function LoginPage() {
           <p>경험을 직무 역량으로 변환하는 AI 취업 코치</p>
         </div>
 
-        <div className="auth-features">
-          <div className="auth-feature"><span>🎯</span><span>STAR 경험 분석</span></div>
-          <div className="auth-feature"><span>💼</span><span>직무 역량 변환</span></div>
-          <div className="auth-feature"><span>📝</span><span>자기소개서 피드백</span></div>
-          <div className="auth-feature"><span>🎤</span><span>면접 답변 코칭</span></div>
+        <div className="auth-tabs">
+          <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>로그인</button>
+          <button className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => setTab('signup')}>회원가입</button>
         </div>
 
-        <button
-          className="btn btn-kakao btn-full"
-          onClick={handleKakao}
-          disabled={loading}
-        >
+        <form onSubmit={handleEmail} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="form-group">
+            <label className="form-label">이메일</label>
+            <input className="form-input" type="email" placeholder="이메일을 입력하세요" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">비밀번호</label>
+            <input className="form-input" type="password" placeholder="비밀번호 (6자 이상)" value={password} onChange={e => setPassword(e.target.value)} autoComplete={tab === 'login' ? 'current-password' : 'new-password'} />
+          </div>
+          <button className="btn btn-primary btn-full" type="submit" disabled={loading}>
+            {loading ? '처리 중...' : tab === 'login' ? '로그인' : '회원가입'}
+          </button>
+        </form>
+
+        <div className="auth-divider"><span>또는</span></div>
+
+        <button className="btn btn-kakao btn-full" onClick={handleKakao} disabled={loading}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.712 1.523 5.1 3.85 6.6l-.98 3.6 4.19-2.76c.94.18 1.92.28 2.94.28 5.523 0 10-3.477 10-7.72C24 6.477 19.523 3 12 3z"/>
           </svg>
-          {loading ? '로그인 중...' : '카카오로 시작하기'}
+          카카오로 계속하기
         </button>
-
-        <p className="auth-notice">로그인하면 분석 기록이 자동 저장됩니다.</p>
       </div>
     </div>
   )
