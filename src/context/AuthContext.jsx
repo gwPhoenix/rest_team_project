@@ -8,21 +8,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('openai_api_key') || '')
 
+  async function fixNaverProvider(u) {
+    if (!u || !u.email?.endsWith('@oauth.naver') || u.app_metadata?.provider !== 'email') return u
+    await supabase.functions.invoke('fix-naver-provider')
+    const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+    return refreshed?.user ?? u
+  }
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const fixed = await fixNaverProvider(session?.user ?? null)
+      setUser(fixed)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const u = session?.user ?? null
-      if (u && u.email?.endsWith('@oauth.naver') && u.app_metadata?.provider === 'email') {
-        await supabase.functions.invoke('fix-naver-provider')
-        const { data: { session: refreshed } } = await supabase.auth.refreshSession()
-        setUser(refreshed?.user ?? null)
-      } else {
-        setUser(u)
-      }
+      const fixed = await fixNaverProvider(session?.user ?? null)
+      setUser(fixed)
     })
 
     return () => subscription.unsubscribe()
