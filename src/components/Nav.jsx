@@ -8,9 +8,10 @@ export default function Nav({ onApiKeyClick }) {
   const [dropOpen, setDropOpen] = useState(false)
 
   const meta     = user?.user_metadata ?? {}
-  const provider = meta.provider ?? user?.app_metadata?.provider ?? 'email'
   const rawEmail = user?.email || ''
-  const email    = provider === 'naver' ? (meta.naver_email || rawEmail) : rawEmail
+  const isNaver  = rawEmail.endsWith('@oauth.naver')
+  const provider = isNaver ? 'naver' : (meta.provider ?? user?.app_metadata?.provider ?? 'email')
+  const email    = isNaver ? (meta.naver_email || rawEmail) : rawEmail
   const name     = meta.name || meta.full_name || email.split('@')[0] || '사용자'
   const avatar   = name.charAt(0).toUpperCase()
 
