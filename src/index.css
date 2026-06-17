@@ -276,22 +276,75 @@ li { margin-bottom: 4px; }
   position: fixed; inset: 0; background: rgba(15,23,42,.75); z-index: 400;
   display: flex; align-items: center; justify-content: center;
 }
-.loading-box { background: var(--paper); border-radius: var(--r); padding: 48px 40px; text-align: center; max-width: 360px; width: 100%; }
-.loading-box h3 { font-size: 18px; font-weight: 700; margin: 16px 0 6px; }
-.loading-box p  { color: var(--txt-2); font-size: 14px; margin-bottom: 28px; }
+.loading-box {
+  background: var(--paper); border-radius: var(--r);
+  padding: 40px 36px; text-align: center; max-width: 400px; width: 100%;
+}
+.loading-box h3 { font-size: 18px; font-weight: 700; margin: 16px 0 20px; }
 .loading-spinner {
   width: 44px; height: 44px; border: 3px solid var(--line);
   border-top-color: var(--primary); border-radius: 50%;
   margin: 0 auto; animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-progress { display: flex; flex-direction: column; gap: 10px; text-align: left; }
-.progress-step   { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--txt-3); }
-.progress-step.active { color: var(--primary); font-weight: 600; }
-.progress-step.done   { color: var(--accent); }
-.pstep-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
-.progress-step.active .pstep-dot { background: var(--primary); }
-.progress-step.done   .pstep-dot { background: var(--accent); }
+
+/* progress bar */
+.loading-pbar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.loading-pbar-bg   { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.loading-pbar-fill { height: 100%; background: var(--primary); border-radius: 99px; transition: width .4s ease; }
+.loading-pbar-pct  { font-size: 12px; font-weight: 700; color: var(--primary); min-width: 32px; text-align: right; }
+
+/* step list */
+.loading-progress { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.progress-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: transparent; transition: background .2s;
+}
+.progress-step.done   { background: #f0fdf4; }
+.progress-step.active { background: #eff6ff; }
+.progress-step.idle   { opacity: .5; }
+
+/* icon */
+.pstep-icon       { width: 20px; height: 20px; flex: none; display: flex; align-items: center; justify-content: center; }
+.pstep-icon.done  { display: block; }
+.pstep-icon.idle  { display: block; }
+.pstep-icon.active {
+  position: relative; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--primary);
+}
+.pstep-ring {
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid var(--primary); opacity: .4;
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(.85); opacity: .5; }
+  100% { transform: scale(1.4);  opacity: 0; }
+}
+
+/* text */
+.pstep-text  { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.pstep-label { font-size: 14px; font-weight: 600; color: var(--txt-1); }
+.pstep-desc  { font-size: 12px; color: var(--primary); }
+.progress-step.done   .pstep-label { color: #15803d; }
+.progress-step.idle   .pstep-label { color: var(--txt-3); font-weight: 400; }
+
+/* badge */
+.pstep-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.progress-step.done   .pstep-badge { background: #dcfce7; color: #15803d; }
+.progress-step.active .pstep-badge { background: #dbeafe; color: #1d4ed8; }
+.progress-step.idle   .pstep-badge { background: var(--line); color: var(--txt-3); }
+
+/* dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  .progress-step.done   { background: rgba(16,185,129,.08); }
+  .progress-step.active { background: rgba(59,130,246,.08); }
+  .progress-step.done   .pstep-label { color: #34d399; }
+  .progress-step.done   .pstep-badge { background: rgba(16,185,129,.15); color: #34d399; }
+  .progress-step.active .pstep-badge { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .progress-step.active .pstep-desc  { color: #60a5fa; }
+}
 
 /* ---- Toast ---- */
 .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
