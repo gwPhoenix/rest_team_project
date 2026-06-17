@@ -13,7 +13,7 @@ export default function Nav({ onApiKeyClick }) {
   const isNaver    = rawEmail.endsWith('@oauth.naver') || appProvider === 'custom:naver'
   const provider   = isNaver ? 'naver' : (meta.provider ?? appProvider ?? 'email')
   const email      = isNaver ? (meta.naver_email || rawEmail) : rawEmail
-  const name     = meta.name || meta.full_name || email.split('@')[0] || '사용자'
+  const name     = meta.name || meta.full_name || meta.nickname || email.split('@')[0] || '사용자'
   const avatar   = name.charAt(0).toUpperCase()
 
   const providerLabel = { kakao: '카카오 로그인', naver: '네이버 로그인', google: '구글 로그인' }[provider] ?? null
