@@ -14,8 +14,15 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user ?? null
+      if (u && u.email?.endsWith('@oauth.naver') && u.app_metadata?.provider === 'email') {
+        await supabase.functions.invoke('fix-naver-provider')
+        const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+        setUser(refreshed?.user ?? null)
+      } else {
+        setUser(u)
+      }
     })
 
     return () => subscription.unsubscribe()
