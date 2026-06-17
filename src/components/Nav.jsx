@@ -45,7 +45,7 @@ export default function Nav({ onApiKeyClick }) {
                 <div className="user-info-block">
                   <span className="user-display-name">{name}</span>
                   <span className="user-display-email">{email}</span>
-                  {providerLabel && <span className="user-provider-badge">{providerLabel}</span>}
+                  {providerLabel && <span className={`user-provider-badge ${provider}`}>{providerLabel}</span>}
                 </div>
                 <div className="dropdown-divider" />
                 <button className="dropdown-item" onClick={() => { signOut(); setDropOpen(false) }}>로그아웃</button>
