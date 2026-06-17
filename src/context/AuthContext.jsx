@@ -41,6 +41,11 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
+  async function signInWithNaver() {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    window.location.href = `${supabaseUrl}/functions/v1/naver-auth`
+  }
+
   async function signInWithEmail(email, password) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
@@ -61,7 +66,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, apiKey, setApiKey, signInWithKakao, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
+    <AuthContext.Provider value={{ user, loading, apiKey, setApiKey, signInWithKakao, signInWithGoogle, signInWithNaver, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   )

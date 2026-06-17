@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
 export default function LoginPage() {
-  const { signInWithKakao, signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth()
+  const { signInWithKakao, signInWithGoogle, signInWithNaver, signInWithEmail, signUpWithEmail } = useAuth()
   const toast = useToast()
 
   const [tab,      setTab]      = useState('login')
@@ -51,6 +51,16 @@ export default function LoginPage() {
       await signInWithGoogle()
     } catch (err) {
       toast('구글 로그인 실패: ' + err.message, 'error')
+      setLoading(false)
+    }
+  }
+
+  async function handleNaver() {
+    setLoading(true)
+    try {
+      await signInWithNaver()
+    } catch (err) {
+      toast('네이버 로그인 실패: ' + err.message, 'error')
       setLoading(false)
     }
   }
@@ -105,6 +115,13 @@ export default function LoginPage() {
               <path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.712 1.523 5.1 3.85 6.6l-.98 3.6 4.19-2.76c.94.18 1.92.28 2.94.28 5.523 0 10-3.477 10-7.72C24 6.477 19.523 3 12 3z"/>
             </svg>
             카카오로 계속하기
+          </button>
+
+          <button className="btn btn-naver btn-full" onClick={handleNaver} disabled={loading}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
+            </svg>
+            네이버로 계속하기
           </button>
 
           <button className="btn btn-google btn-full" onClick={handleGoogle} disabled={loading}>
