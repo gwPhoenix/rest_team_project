@@ -50,6 +50,9 @@ li { margin-bottom: 4px; }
 .btn-ghost:hover:not(:disabled)   { background: var(--paper-2); color: var(--txt); }
 .btn-kakao    { background: var(--kakao); color: #000; font-size: 15px; padding: 14px 24px; border-radius: var(--r); }
 .btn-kakao:hover:not(:disabled)   { background: #F5DC00; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(254,229,0,.4); }
+.btn-google   { background: #fff; color: #3c4043; font-size: 15px; padding: 14px 24px; border-radius: var(--r); border: 1.5px solid #dadce0; }
+.btn-google:hover:not(:disabled)  { background: #f8f9fa; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+.social-buttons { display: flex; flex-direction: column; gap: 10px; }
 .btn-full     { width: 100%; }
 .btn-lg       { padding: 14px 28px; font-size: 16px; border-radius: var(--r); }
 .btn-sm       { padding: 6px 14px; font-size: 13px; }
