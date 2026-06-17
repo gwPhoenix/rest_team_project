@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
     email:         syntheticEmail,
     email_confirm: true,
+    app_metadata:  { provider: 'naver', providers: ['naver'] },
     user_metadata: {
       full_name:   naverUser.name ?? naverUser.nickname ?? '',
       avatar_url:  naverUser.profile_image ?? null,
