@@ -45,27 +45,31 @@ Deno.serve(async (req) => {
   const profileData = await profileRes.json()
   const naverUser   = profileData.response
 
-  if (!naverUser?.email) {
-    return Response.redirect(`${siteUrl}?error=no_email`, 302)
+  if (!naverUser?.id) {
+    return Response.redirect(`${siteUrl}?error=no_user_id`, 302)
   }
+
+  // 네이버 고유 ID 기반 가상 이메일 — 다른 소셜 로그인과 완전히 별개 유저로 처리
+  const syntheticEmail = `naver_${naverUser.id}@oauth.naver`
 
   // ── Supabase 유저 생성 or 기존 유저 조회 ───────────────────
   const supabase = createClient(supabaseUrl, serviceRoleKey)
 
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-    email:         naverUser.email,
+    email:         syntheticEmail,
     email_confirm: true,
     user_metadata: {
       full_name:  naverUser.name ?? naverUser.nickname ?? '',
       avatar_url: naverUser.profile_image ?? null,
       provider:   'naver',
+      naver_email: naverUser.email ?? null,
     },
   })
 
-  let userEmail = naverUser.email
+  let userEmail = syntheticEmail
 
   if (createErr) {
-    // 이미 가입된 이메일이면 기존 유저 그대로 사용
+    // 이미 가입된 네이버 유저면 기존 유저 그대로 사용
     if (!createErr.message.toLowerCase().includes('already')) {
       return Response.redirect(`${siteUrl}?error=user_create_failed`, 302)
     }
