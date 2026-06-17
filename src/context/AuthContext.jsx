@@ -9,34 +9,30 @@ export function AuthProvider({ children }) {
   const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('openai_api_key') || '')
   const fixing = useRef(false)
 
-  async function fixNaverProvider(u) {
-    if (!u || !u.email?.endsWith('@oauth.naver') || u.app_metadata?.provider !== 'email') return u
-    if (fixing.current) return u   // refreshSession이 onAuthStateChange 재호출 → 루프 차단
+  function fixNaverProviderBackground(u) {
+    if (!u?.email?.endsWith('@oauth.naver')) return
+    if (u.app_metadata?.provider === 'naver') return
+    if (fixing.current) return
     fixing.current = true
-    try {
-      await supabase.functions.invoke('fix-naver-provider')
-      const { data: { session: refreshed } } = await supabase.auth.refreshSession()
-      return refreshed?.user ?? u
-    } catch {
-      return u                      // fix 실패해도 로그인은 유지
-    } finally {
-      fixing.current = false
-    }
+    supabase.functions.invoke('fix-naver-provider')
+      .then(() => supabase.auth.refreshSession())
+      .then(({ data: { session } }) => { if (session?.user) setUser(session.user) })
+      .catch(() => {})
+      .finally(() => { fixing.current = false })
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      try {
-        const fixed = await fixNaverProvider(session?.user ?? null)
-        setUser(fixed)
-      } finally {
-        setLoading(false)           // 무조건 로딩 해제
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const u = session?.user ?? null
+      setUser(u)
+      setLoading(false)           // 무조건 즉시 로딩 해제
+      fixNaverProviderBackground(u)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const fixed = await fixNaverProvider(session?.user ?? null)
-      setUser(fixed)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null
+      setUser(u)
+      fixNaverProviderBackground(u)
     })
 
     return () => subscription.unsubscribe()
