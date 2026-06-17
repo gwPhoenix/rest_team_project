@@ -7,9 +7,14 @@ export default function Nav({ onApiKeyClick }) {
   const location = useLocation()
   const [dropOpen, setDropOpen] = useState(false)
 
-  const email = user?.email || ''
-  const name  = user?.user_metadata?.name || user?.user_metadata?.full_name || email.split('@')[0] || '사용자'
-  const avatar = name.charAt(0).toUpperCase()
+  const meta     = user?.user_metadata ?? {}
+  const provider = meta.provider ?? user?.app_metadata?.provider ?? 'email'
+  const rawEmail = user?.email || ''
+  const email    = provider === 'naver' ? (meta.naver_email || rawEmail) : rawEmail
+  const name     = meta.name || meta.full_name || email.split('@')[0] || '사용자'
+  const avatar   = name.charAt(0).toUpperCase()
+
+  const providerLabel = { kakao: '카카오 로그인', naver: '네이버 로그인', google: '구글 로그인' }[provider] ?? null
 
   return (
     <nav className="navbar">
@@ -40,6 +45,7 @@ export default function Nav({ onApiKeyClick }) {
                 <div className="user-info-block">
                   <span className="user-display-name">{name}</span>
                   <span className="user-display-email">{email}</span>
+                  {providerLabel && <span className="user-provider-badge">{providerLabel}</span>}
                 </div>
                 <div className="dropdown-divider" />
                 <button className="dropdown-item" onClick={() => { signOut(); setDropOpen(false) }}>로그아웃</button>

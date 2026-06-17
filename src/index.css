@@ -99,6 +99,7 @@ li { margin-bottom: 4px; }
 .user-info-block { padding: 8px 10px 10px; }
 .user-display-name  { display: block; font-weight: 600; font-size: 14px; }
 .user-display-email { display: block; font-size: 12px; color: var(--txt-3); margin-top: 2px; word-break: break-all; }
+.user-provider-badge { display: inline-block; margin-top: 5px; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--paper-2); color: var(--txt-2); }
 .dropdown-divider { height: 1px; background: var(--line); margin: 4px 0; }
 .dropdown-item { width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; border-radius: var(--r-sm); font-size: 14px; cursor: pointer; color: var(--txt); }
 .dropdown-item:hover { background: var(--paper-2); }
