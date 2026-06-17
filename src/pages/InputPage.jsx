@@ -24,7 +24,6 @@ export default function InputPage({ onApiKeyClick }) {
   const [job,       setJob]       = useState('')
   const [company,   setCompany]   = useState('')
   const [exp,       setExp]       = useState('')
-  const [cover,     setCover]     = useState('')
   const [interview, setInterview] = useState('')
   const [loading,   setLoading]   = useState(false)
   const [step,      setStep]      = useState(0)
@@ -35,14 +34,14 @@ export default function InputPage({ onApiKeyClick }) {
       try {
         const d = JSON.parse(saved)
         setJob(d.job || ''); setCompany(d.company || '')
-        setExp(d.exp || ''); setCover(d.cover || ''); setInterview(d.interview || '')
+        setExp(d.exp || d.cover || ''); setInterview(d.interview || '')
       } catch {}
     }
   }, [])
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ job, company, exp, cover, interview }))
-  }, [job, company, exp, cover, interview])
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ job, company, exp, interview }))
+  }, [job, company, exp, interview])
 
   async function startAnalysis() {
     if (!job) { toast('직무를 선택해주세요.', 'warning'); return }
@@ -53,7 +52,7 @@ export default function InputPage({ onApiKeyClick }) {
     try {
       const result = await analyzeAll(
         apiKey,
-        { jobRole: job, company, experience: exp, coverLetter: cover, interviewAnswer: interview },
+        { jobRole: job, company, experience: exp, coverLetter: exp, interviewAnswer: interview },
         s => setStep(s - 1)
       )
 
@@ -114,37 +113,20 @@ export default function InputPage({ onApiKeyClick }) {
             </div>
           </div>
 
-          {/* 경험 입력 */}
+          {/* 경험 및 자기소개서 입력 */}
           <div className="form-section">
-            <h2 className="section-title">경험 입력 <span className="required">*</span></h2>
-            <p className="section-desc">어떤 경험이든 괜찮습니다. 프로젝트, 아르바이트, 동아리, 봉사활동 등 직무와 관련된 경험을 자유롭게 서술해주세요.</p>
+            <h2 className="section-title">경험 및 자기소개서 <span className="required">*</span></h2>
+            <p className="section-desc">경험이나 자기소개서 내용을 자유롭게 입력하세요. AI가 STAR 분석, 역량 변환, 자기소개서 피드백을 각각 분리하여 코칭해드립니다.</p>
             <div className="form-group">
               <textarea
                 className="form-textarea"
-                placeholder="경험을 자세히 입력해주세요 (최소 30자)&#10;예: 팀 프로젝트에서 프론트엔드를 담당하여 React로 대시보드를 개발했습니다..."
+                placeholder="경험 또는 자기소개서 내용을 입력해주세요 (최소 30자)&#10;예: 팀 프로젝트에서 프론트엔드를 담당하여 React로 대시보드를 개발했습니다..."
                 value={exp}
                 onChange={e => setExp(e.target.value)}
-                maxLength={1000}
-                rows={6}
-              />
-              <div className={`char-count${exp.length > 900 ? ' warn' : ''}`}>{exp.length} / 1000</div>
-            </div>
-          </div>
-
-          {/* 자기소개서 */}
-          <div className="form-section">
-            <h2 className="section-title">자기소개서 <span className="optional">(선택)</span></h2>
-            <p className="section-desc">작성한 자기소개서가 있으면 입력하세요. AI가 논리성, 구체성, 직무 적합성을 분석합니다.</p>
-            <div className="form-group">
-              <textarea
-                className="form-textarea"
-                placeholder="자기소개서 내용을 붙여넣으세요..."
-                value={cover}
-                onChange={e => setCover(e.target.value)}
                 maxLength={2000}
-                rows={5}
+                rows={8}
               />
-              <div className={`char-count${cover.length > 1800 ? ' warn' : ''}`}>{cover.length} / 2000</div>
+              <div className={`char-count${exp.length > 1800 ? ' warn' : ''}`}>{exp.length} / 2000</div>
             </div>
           </div>
 
