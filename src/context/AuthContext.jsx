@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -7,19 +7,31 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('openai_api_key') || '')
+  const fixing = useRef(false)
 
   async function fixNaverProvider(u) {
     if (!u || !u.email?.endsWith('@oauth.naver') || u.app_metadata?.provider !== 'email') return u
-    await supabase.functions.invoke('fix-naver-provider')
-    const { data: { session: refreshed } } = await supabase.auth.refreshSession()
-    return refreshed?.user ?? u
+    if (fixing.current) return u   // refreshSession이 onAuthStateChange 재호출 → 루프 차단
+    fixing.current = true
+    try {
+      await supabase.functions.invoke('fix-naver-provider')
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+      return refreshed?.user ?? u
+    } catch {
+      return u                      // fix 실패해도 로그인은 유지
+    } finally {
+      fixing.current = false
+    }
   }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const fixed = await fixNaverProvider(session?.user ?? null)
-      setUser(fixed)
-      setLoading(false)
+      try {
+        const fixed = await fixNaverProvider(session?.user ?? null)
+        setUser(fixed)
+      } finally {
+        setLoading(false)           // 무조건 로딩 해제
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -33,9 +45,7 @@ export function AuthProvider({ children }) {
   async function signInWithKakao() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
-      options: {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL ?? '/'}`,
-      },
+      options: { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL ?? '/'}` },
     })
     if (error) throw error
   }
@@ -43,9 +53,7 @@ export function AuthProvider({ children }) {
   async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL ?? '/'}`,
-      },
+      options: { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL ?? '/'}` },
     })
     if (error) throw error
   }
