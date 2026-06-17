@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
+import { analyzeInterview } from '../lib/openai'
 
 const TABS = [
   { id: 'exp',       label: '경험 분석' },
@@ -92,11 +95,44 @@ function CompTab({ data }) {
   )
 }
 
+function InterviewInputSection({ onSubmit, loading }) {
+  const [answer, setAnswer] = useState('')
+  return (
+    <div className="tab-content">
+      <div className="result-card">
+        <h3>면접 답변 입력</h3>
+        <p style={{ color: 'var(--txt-2)', marginBottom: 12, fontSize: 14 }}>
+          면접에서 준비한 답변을 입력하면 AI가 논리성, 전달력, 개선점을 피드백합니다.
+        </p>
+        <textarea
+          className="form-textarea"
+          placeholder="면접 답변을 입력하세요..."
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          maxLength={1500}
+          rows={6}
+          style={{ marginBottom: 8 }}
+        />
+        <div className={`char-count${answer.length > 1350 ? ' warn' : ''}`} style={{ marginBottom: 16 }}>
+          {answer.length} / 1500
+        </div>
+        <button
+          className="btn btn-primary"
+          onClick={() => onSubmit(answer)}
+          disabled={loading || answer.trim().length < 10}
+        >
+          {loading ? '분석 중...' : '면접 피드백 받기'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function FeedbackTab({ data, type }) {
   if (!data) return (
     <div className="tab-content">
       <div className="empty-state">
-        <p>{type === 'cover' ? '자기소개서를 입력하면 피드백을 받을 수 있습니다.' : '면접 답변을 입력하면 피드백을 받을 수 있습니다.'}</p>
+        <p>자기소개서를 입력하면 피드백을 받을 수 있습니다.</p>
         <Link to="/" className="btn btn-primary">입력 페이지로</Link>
       </div>
     </div>
@@ -221,9 +257,30 @@ function MissionsTab({ data }) {
 export default function ResultsPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { apiKey } = useAuth()
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState('exp')
+  const [result, setResult] = useState(location.state?.result)
+  const [interviewLoading, setInterviewLoading] = useState(false)
 
-  const result = location.state?.result
+  async function submitInterview(answer) {
+    if (!apiKey) { toast('OpenAI API 키를 먼저 설정해주세요.', 'warning'); return }
+    setInterviewLoading(true)
+    try {
+      const feedback = await analyzeInterview(apiKey, {
+        jobRole: result.jobRole,
+        company: result.company,
+        interviewAnswer: answer,
+        expSummary: result.expAnalysis,
+      })
+      setResult(prev => ({ ...prev, interviewFeedback: feedback }))
+    } catch (err) {
+      toast(err.message, 'error')
+    } finally {
+      setInterviewLoading(false)
+    }
+  }
+
   if (!result) return (
     <div className="page-container">
       <div className="empty-state">
@@ -260,7 +317,11 @@ export default function ResultsPage() {
       {activeTab === 'exp'       && <ExpTab data={expAnalysis} />}
       {activeTab === 'comp'      && <CompTab data={competencies} />}
       {activeTab === 'cover'     && <FeedbackTab data={coverFeedback} type="cover" />}
-      {activeTab === 'interview' && <FeedbackTab data={interviewFeedback} type="interview" />}
+      {activeTab === 'interview' && (
+        interviewFeedback
+          ? <FeedbackTab data={interviewFeedback} type="interview" />
+          : <InterviewInputSection onSubmit={submitInterview} loading={interviewLoading} />
+      )}
       {activeTab === 'questions' && <QuestionsTab data={questions} />}
       {activeTab === 'missions'  && <MissionsTab data={missions} />}
     </div>
