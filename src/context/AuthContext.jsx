@@ -14,8 +14,31 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const u = session?.user ?? null
+
+      // 네이버 첫 로그인 시 provider_token으로 실제 이메일 저장
+      if (
+        event === 'SIGNED_IN' &&
+        session?.provider_token &&
+        u?.app_metadata?.provider === 'custom:naver' &&
+        !u?.user_metadata?.naver_email
+      ) {
+        try {
+          const res = await fetch('https://openapi.naver.com/v1/nid/me', {
+            headers: { Authorization: `Bearer ${session.provider_token}` },
+          })
+          const { response: profile } = await res.json()
+          if (profile?.email) {
+            await supabase.auth.updateUser({ data: { naver_email: profile.email } })
+            const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+            setUser(refreshed?.user ?? null)
+            return
+          }
+        } catch {}
+      }
+
+      setUser(u)
     })
 
     return () => subscription.unsubscribe()
