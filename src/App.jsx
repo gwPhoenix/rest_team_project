@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import Nav from './components/Nav'
@@ -9,26 +9,43 @@ import InputPage from './pages/InputPage'
 import ResultsPage from './pages/ResultsPage'
 import HistoryPage from './pages/HistoryPage'
 
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) return <div className="splash"><div className="loading-spinner" /></div>
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  return children
+}
+
 function AppInner() {
   const { user, loading } = useAuth()
   const [apiKeyOpen, setApiKeyOpen] = useState(false)
 
-  if (loading) return (
-    <div className="splash">
-      <div className="loading-spinner" />
-    </div>
-  )
-
-  if (!user) return <LoginPage />
+  if (loading) return <div className="splash"><div className="loading-spinner" /></div>
 
   return (
     <>
-      <Nav onApiKeyClick={() => setApiKeyOpen(true)} />
-      {apiKeyOpen && <ApiKeyModal onClose={() => setApiKeyOpen(false)} />}
+      {user && <Nav onApiKeyClick={() => setApiKeyOpen(true)} />}
+      {user && apiKeyOpen && <ApiKeyModal onClose={() => setApiKeyOpen(false)} />}
       <Routes>
-        <Route path="/"        element={<InputPage onApiKeyClick={() => setApiKeyOpen(true)} />} />
-        <Route path="/results" element={<ResultsPage />} />
-        <Route path="/history" element={<HistoryPage />} />
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" replace /> : <LoginPage />}
+        />
+        <Route
+          path="/"
+          element={<ProtectedRoute><InputPage onApiKeyClick={() => setApiKeyOpen(true)} /></ProtectedRoute>}
+        />
+        <Route
+          path="/results"
+          element={<ProtectedRoute><ResultsPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/history"
+          element={<ProtectedRoute><HistoryPage /></ProtectedRoute>}
+        />
+        <Route path="*" element={<Navigate to={user ? '/' : '/login'} replace />} />
       </Routes>
     </>
   )
