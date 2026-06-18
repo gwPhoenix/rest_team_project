@@ -3,32 +3,57 @@ const BASE_URL = 'https://api.upstage.ai/v1/chat/completions'
 export const AI_MODEL = MODEL
 
 function extractJSONObject(text) {
-  // 문자열 내부의 { } 를 무시하는 정확한 JSON 추출
   let start = -1, depth = 0, inString = false, escaped = false
   for (let i = 0; i < text.length; i++) {
     const ch = text[i]
-    if (escaped)          { escaped = false; continue }
+    if (escaped)               { escaped = false; continue }
     if (ch === '\\' && inString) { escaped = true;  continue }
-    if (ch === '"')       { inString = !inString;   continue }
-    if (inString)         continue
-    if (ch === '{')       { if (depth++ === 0) start = i }
-    else if (ch === '}')  { if (--depth === 0 && start !== -1) return text.slice(start, i + 1) }
+    if (ch === '"')              { inString = !inString; continue }
+    if (inString)                continue
+    if (ch === '{')              { if (depth++ === 0) start = i }
+    else if (ch === '}')         { if (--depth === 0 && start !== -1) return text.slice(start, i + 1) }
   }
   return null
 }
 
+// JSON 문자열 값 안에 있는 리터럴 개행문자를 \n 이스케이프로 교체
+function fixUnescapedNewlines(text) {
+  let result = '', inString = false, escaped = false
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (escaped)               { escaped = false; result += ch; continue }
+    if (ch === '\\' && inString) { escaped = true;  result += ch; continue }
+    if (ch === '"')              { inString = !inString; result += ch; continue }
+    if (inString && ch === '\n') { result += '\\n'; continue }
+    if (inString && ch === '\r') { result += '\\r'; continue }
+    result += ch
+  }
+  return result
+}
+
 function safeParseJSON(text) {
-  // 1차: 코드 펜스 제거 (```json 또는 ```)
   const cleaned = text
     .replace(/^```(?:json)?\s*\n?/i, '')
     .replace(/\n?```\s*$/i, '')
     .trim()
-  try { return JSON.parse(cleaned) } catch {}
 
-  // 2차: 문자열 내부 중괄호를 올바르게 무시하며 JSON 추출
+  // 1차: 그대로 파싱
+  try { return JSON.parse(cleaned) } catch (e1) {
+    console.error('[1차 실패]', e1.message)
+  }
+
+  // 2차: 문자열 내 개행문자 이스케이프 후 파싱
+  try { return JSON.parse(fixUnescapedNewlines(cleaned)) } catch (e2) {
+    console.error('[2차 실패]', e2.message)
+  }
+
+  // 3차: JSON 객체 직접 추출 후 파싱
   const extracted = extractJSONObject(text)
   if (extracted) {
     try { return JSON.parse(extracted) } catch {}
+    try { return JSON.parse(fixUnescapedNewlines(extracted)) } catch (e3) {
+      console.error('[3차 실패]', e3.message)
+    }
   }
 
   throw new Error('AI 응답 파싱 실패')
@@ -37,7 +62,7 @@ function safeParseJSON(text) {
 async function callAPI(apiKey, messages, jsonMode = true) {
   if (!apiKey) throw new Error('Solar AI(Upstage) API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.')
 
-  const body = { model: MODEL, messages, temperature: 0.7, max_tokens: 4096 }
+  const body = { model: MODEL, messages, temperature: 0.3, max_tokens: 4096 }
 
   const res = await fetch(BASE_URL, {
     method: 'POST',
