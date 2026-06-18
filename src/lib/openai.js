@@ -58,7 +58,10 @@ async function callAPI(apiKey, messages, jsonMode = true) {
 
   if (jsonMode) {
     try { return safeParseJSON(content) }
-    catch { throw new Error('AI 응답 파싱 실패') }
+    catch {
+      console.error('[Solar AI] 파싱 실패 원시 응답:', content)
+      throw new Error('AI 응답 파싱 실패')
+    }
   }
   return content
 }
