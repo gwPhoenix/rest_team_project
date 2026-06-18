@@ -58,14 +58,15 @@ export default function InputPage() {
         s => setStep(s - 1)
       )
 
+      // Supabase 저장 실패가 결과 페이지 이동을 막지 않도록 fire-and-forget
       if (user) {
-        await supabase.from('analyses').insert({
+        supabase.from('analyses').insert({
           user_id:    user.id,
           job,
           company:    company || null,
           experience: exp,
           result,
-        })
+        }).catch(() => {})
       }
 
       localStorage.removeItem(DRAFT_KEY)
