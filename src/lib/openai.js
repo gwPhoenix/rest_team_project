@@ -37,7 +37,7 @@ function safeParseJSON(text) {
 async function callAPI(apiKey, messages, jsonMode = true) {
   if (!apiKey) throw new Error('Solar AI(Upstage) API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.')
 
-  const body = { model: MODEL, messages, temperature: 0.7, max_tokens: 3000 }
+  const body = { model: MODEL, messages, temperature: 0.7, max_tokens: 4096 }
 
   const res = await fetch(BASE_URL, {
     method: 'POST',
@@ -58,8 +58,11 @@ async function callAPI(apiKey, messages, jsonMode = true) {
 
   if (jsonMode) {
     try { return safeParseJSON(content) }
-    catch {
-      console.error('[Solar AI] 파싱 실패 원시 응답:', content)
+    catch (e) {
+      console.error('[Solar AI] 파싱 실패')
+      console.error('응답 길이:', content?.length)
+      console.error('마지막 200자:', content?.slice(-200))
+      console.error('Parse 에러:', e.message)
       throw new Error('AI 응답 파싱 실패')
     }
   }
