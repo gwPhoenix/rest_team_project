@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function Nav({ onApiKeyClick }) {
+export default function Nav() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [dropOpen, setDropOpen] = useState(false)
@@ -32,14 +32,6 @@ export default function Nav({ onApiKeyClick }) {
         </div>
 
         <div className="nav-actions">
-          <button className="btn btn-ghost btn-icon" onClick={onApiKeyClick} title="API 키 설정">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M5.64 5.64A10 10 0 0 0 18.36 18.36"/>
-              <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
-            </svg>
-          </button>
-
           <div className="user-menu" style={{ position: 'relative' }}>
             <div className="user-avatar" onClick={() => setDropOpen(v => !v)}>{avatar}</div>
             {dropOpen && (

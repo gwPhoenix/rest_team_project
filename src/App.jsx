@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import Nav from './components/Nav'
 import LoginPage from './components/LoginPage'
-import ApiKeyModal from './components/ApiKeyModal'
 import InputPage from './pages/InputPage'
 import ResultsPage from './pages/ResultsPage'
 import HistoryPage from './pages/HistoryPage'
@@ -20,14 +18,12 @@ function ProtectedRoute({ children }) {
 
 function AppInner() {
   const { user, loading } = useAuth()
-  const [apiKeyOpen, setApiKeyOpen] = useState(false)
 
   if (loading) return <div className="splash"><div className="loading-spinner" /></div>
 
   return (
     <>
-      {user && <Nav onApiKeyClick={() => setApiKeyOpen(true)} />}
-      {user && apiKeyOpen && <ApiKeyModal onClose={() => setApiKeyOpen(false)} />}
+      {user && <Nav />}
       <Routes>
         <Route
           path="/login"
@@ -35,7 +31,7 @@ function AppInner() {
         />
         <Route
           path="/"
-          element={<ProtectedRoute><InputPage onApiKeyClick={() => setApiKeyOpen(true)} /></ProtectedRoute>}
+          element={<ProtectedRoute><InputPage /></ProtectedRoute>}
         />
         <Route
           path="/results"

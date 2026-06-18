@@ -15,7 +15,7 @@ const JOB_ROLES = [
 ]
 const DRAFT_KEY = 'ai_coach_draft'
 
-export default function InputPage({ onApiKeyClick }) {
+export default function InputPage() {
   const { user, apiKey } = useAuth()
   const toast    = useToast()
   const navigate = useNavigate()
@@ -48,7 +48,7 @@ export default function InputPage({ onApiKeyClick }) {
   async function startAnalysis() {
     if (!job) { toast('직무를 선택해주세요.', 'warning'); return }
     if (exp.trim().length < 30) { toast('경험을 30자 이상 입력해주세요.', 'warning'); return }
-    if (!apiKey) { toast('OpenAI API 키를 먼저 설정해주세요.', 'warning'); onApiKeyClick?.(); return }
+    if (!apiKey) { toast('API 키가 설정되지 않았습니다. 관리자에게 문의하세요.', 'warning'); return }
 
     setLoading(true); setStep(0)
     try {
