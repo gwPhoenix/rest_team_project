@@ -8,8 +8,8 @@ export default function ApiKeyModal({ onClose }) {
   const [value, setValue] = useState(apiKey)
 
   function save() {
-    if (!value.startsWith('sk-')) {
-      toast('올바른 API 키 형식이 아닙니다. (sk-로 시작)', 'error')
+    if (!value.startsWith('up_')) {
+      toast('올바른 API 키 형식이 아닙니다. (up_로 시작)', 'error')
       return
     }
     setApiKey(value.trim())
@@ -21,26 +21,26 @@ export default function ApiKeyModal({ onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-card">
         <div className="modal-header">
-          <h2>OpenAI API 키 설정</h2>
+          <h2>Solar AI API 키 설정</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <p className="modal-desc">
-          AI 코칭 기능을 사용하려면 OpenAI API 키가 필요합니다.<br />
+          AI 코칭 기능을 사용하려면 Upstage Solar AI API 키가 필요합니다.<br />
           API 키는 브라우저 로컬에만 저장되며 외부로 전송되지 않습니다.
         </p>
         <div className="form-group">
-          <label className="form-label">OpenAI API 키</label>
+          <label className="form-label">Solar AI API 키</label>
           <input
             className="form-input"
             type="password"
-            placeholder="sk-..."
+            placeholder="up_..."
             value={value}
             onChange={e => setValue(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && save()}
           />
           <small className="form-hint">
-            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
-              OpenAI 플랫폼
+            <a href="https://console.upstage.ai/api-keys" target="_blank" rel="noopener noreferrer">
+              Upstage 콘솔
             </a>에서 API 키를 발급받을 수 있습니다.
           </small>
         </div>

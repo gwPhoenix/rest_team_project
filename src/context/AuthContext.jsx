@@ -6,7 +6,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
-  const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('openai_api_key') || '')
+  const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('solar_api_key') || import.meta.env.VITE_SOLAR_API_KEY || '')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
   }
 
   function setApiKey(key) {
-    localStorage.setItem('openai_api_key', key)
+    localStorage.setItem('solar_api_key', key)
     setApiKeyState(key)
   }
 

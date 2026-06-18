@@ -1,11 +1,15 @@
-const MODEL = 'gpt-4o-mini'
-const BASE_URL = 'https://api.openai.com/v1/chat/completions'
+const MODEL = 'solar-pro3'
+const BASE_URL = 'https://api.upstage.ai/v1/chat/completions'
+
+function safeParseJSON(text) {
+  const cleaned = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim()
+  return JSON.parse(cleaned)
+}
 
 async function callAPI(apiKey, messages, jsonMode = true) {
-  if (!apiKey) throw new Error('OpenAI API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.')
+  if (!apiKey) throw new Error('Solar AI(Upstage) API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.')
 
   const body = { model: MODEL, messages, temperature: 0.7, max_tokens: 3000 }
-  if (jsonMode) body.response_format = { type: 'json_object' }
 
   const res = await fetch(BASE_URL, {
     method: 'POST',
@@ -25,7 +29,7 @@ async function callAPI(apiKey, messages, jsonMode = true) {
   if (!content) throw new Error('AI 응답이 비어있습니다.')
 
   if (jsonMode) {
-    try { return JSON.parse(content) }
+    try { return safeParseJSON(content) }
     catch { throw new Error('AI 응답 파싱 실패') }
   }
   return content
