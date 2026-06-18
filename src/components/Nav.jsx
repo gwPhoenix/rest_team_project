@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { AI_MODEL } from '../lib/openai'
 
 export default function Nav() {
   const { user, signOut } = useAuth()
@@ -25,6 +26,7 @@ export default function Nav() {
           <div className="logo-badge-sm">AI</div>
           <span>취업 코치</span>
         </Link>
+        <span className="ai-model-badge">{AI_MODEL}</span>
 
         <div className="nav-links">
           <Link to="/" className={`nav-link${location.pathname === '/' ? ' active' : ''}`}>분석하기</Link>

@@ -1,5 +1,6 @@
 const MODEL = 'solar-pro3'
 const BASE_URL = 'https://api.upstage.ai/v1/chat/completions'
+export const AI_MODEL = MODEL
 
 function safeParseJSON(text) {
   const cleaned = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim()
