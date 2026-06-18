@@ -13,7 +13,6 @@ const JOB_ROLES = [
   '컨설턴트', '인사/HR', '재무/회계', '영업 관리',
   '운영/CS', '연구개발(R&D)', '기타',
 ]
-const QUICK_JOBS = ['소프트웨어 개발자', 'PM/PO', 'UX/UI 디자이너', '데이터 분석가', '마케터']
 const DRAFT_KEY = 'ai_coach_draft'
 
 export default function InputPage({ onApiKeyClick }) {
@@ -21,12 +20,13 @@ export default function InputPage({ onApiKeyClick }) {
   const toast    = useToast()
   const navigate = useNavigate()
 
-  const [job,       setJob]       = useState('')
-  const [company,   setCompany]   = useState('')
-  const [exp,       setExp]       = useState('')
-  const [interview, setInterview] = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [step,      setStep]      = useState(0)
+  const [job,               setJob]               = useState('')
+  const [company,           setCompany]           = useState('')
+  const [exp,               setExp]               = useState('')
+  const [interviewQuestion, setInterviewQuestion] = useState('')
+  const [interview,         setInterview]         = useState('')
+  const [loading,           setLoading]           = useState(false)
+  const [step,              setStep]              = useState(0)
 
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY)
@@ -34,14 +34,16 @@ export default function InputPage({ onApiKeyClick }) {
       try {
         const d = JSON.parse(saved)
         setJob(d.job || ''); setCompany(d.company || '')
-        setExp(d.exp || d.cover || ''); setInterview(d.interview || '')
+        setExp(d.exp || d.cover || '')
+        setInterviewQuestion(d.interviewQuestion || '')
+        setInterview(d.interview || '')
       } catch {}
     }
   }, [])
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ job, company, exp, interview }))
-  }, [job, company, exp, interview])
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ job, company, exp, interviewQuestion, interview }))
+  }, [job, company, exp, interviewQuestion, interview])
 
   async function startAnalysis() {
     if (!job) { toast('직무를 선택해주세요.', 'warning'); return }
@@ -52,7 +54,7 @@ export default function InputPage({ onApiKeyClick }) {
     try {
       const result = await analyzeAll(
         apiKey,
-        { jobRole: job, company, experience: exp, coverLetter: exp, interviewAnswer: interview },
+        { jobRole: job, company, experience: exp, coverLetter: exp, interviewAnswer: interview, interviewQuestion },
         s => setStep(s - 1)
       )
 
@@ -96,18 +98,9 @@ export default function InputPage({ onApiKeyClick }) {
                   <option value="">직무를 선택하세요</option>
                   {JOB_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <div className="quick-select">
-                  {QUICK_JOBS.map(r => (
-                    <button key={r} type="button"
-                      className={`tag-btn${job === r ? ' active' : ''}`}
-                      onClick={() => setJob(r)}>
-                      {r}
-                    </button>
-                  ))}
-                </div>
               </div>
               <div className="form-group">
-                <label className="form-label">지원 기업 <span className="optional">(선택)</span></label>
+                <label className="form-label">지원 기업</label>
                 <input className="form-input" type="text" placeholder="기업명을 입력하세요" value={company} onChange={e => setCompany(e.target.value)} />
               </div>
             </div>
@@ -127,6 +120,23 @@ export default function InputPage({ onApiKeyClick }) {
                 rows={8}
               />
               <div className={`char-count${exp.length > 1800 ? ' warn' : ''}`}>{exp.length} / 2000</div>
+            </div>
+          </div>
+
+          {/* 면접 질문 */}
+          <div className="form-section">
+            <h2 className="section-title">면접 질문 <span className="optional">(선택)</span></h2>
+            <p className="section-desc">면접에서 받은 질문을 입력하세요. AI가 질문 의도를 파악하여 답변 피드백에 반영합니다.</p>
+            <div className="form-group">
+              <textarea
+                className="form-textarea"
+                placeholder="면접 질문을 입력하세요...&#10;예: 본인의 강점과 약점을 말해주세요."
+                value={interviewQuestion}
+                onChange={e => setInterviewQuestion(e.target.value)}
+                maxLength={500}
+                rows={3}
+              />
+              <div className={`char-count${interviewQuestion.length > 450 ? ' warn' : ''}`}>{interviewQuestion.length} / 500</div>
             </div>
           </div>
 

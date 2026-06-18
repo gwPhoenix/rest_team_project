@@ -52,10 +52,10 @@ async function analyzeCoverLetter(apiKey, { jobRole, company, coverLetter, expSu
   ])
 }
 
-export async function analyzeInterview(apiKey, { jobRole, company, interviewAnswer, expSummary }) {
+export async function analyzeInterview(apiKey, { jobRole, company, interviewAnswer, interviewQuestion, expSummary }) {
   return callAPI(apiKey, [
     { role: 'system', content: '당신은 면접 전문 코치입니다. 면접 답변을 분석하고 반드시 JSON 형식으로 응답하세요.' },
-    { role: 'user', content: `지원 직무: ${jobRole}\n기업: ${company || '미입력'}\n경험 요약: ${expSummary.summary}\n\n면접 답변:\n${interviewAnswer}\n\n다음 JSON으로 응답:\n{"scores":{"logic":75,"specificity":70,"jobFit":80,"communication":75,"overall":75},"feedback":"전반 피드백","goodPoints":["잘한점"],"improvements":["개선점"],"improvedAnswer":"개선된 답변 예시","followUpQuestions":["꼬리질문1","꼬리질문2"]}` },
+    { role: 'user', content: `지원 직무: ${jobRole}\n기업: ${company || '미입력'}\n경험 요약: ${expSummary.summary}${interviewQuestion ? `\n\n면접 질문:\n${interviewQuestion}` : ''}\n\n면접 답변:\n${interviewAnswer}\n\n다음 JSON으로 응답:\n{"scores":{"logic":75,"specificity":70,"jobFit":80,"communication":75,"overall":75},"feedback":"전반 피드백","goodPoints":["잘한점"],"improvements":["개선점"],"improvedAnswer":"개선된 답변 예시","followUpQuestions":["꼬리질문1","꼬리질문2"]}` },
   ])
 }
 
@@ -97,7 +97,7 @@ function generateMissions({ coverFeedback, interviewFeedback, competencies }) {
   return missions.slice(0, 4)
 }
 
-export async function analyzeAll(apiKey, { jobRole, company, experience, coverLetter, interviewAnswer }, onStep) {
+export async function analyzeAll(apiKey, { jobRole, company, experience, coverLetter, interviewAnswer, interviewQuestion }, onStep) {
   onStep?.(1)
   const expAnalysis = await analyzeExperience(apiKey, { jobRole, company, experience })
 
@@ -107,7 +107,7 @@ export async function analyzeAll(apiKey, { jobRole, company, experience, coverLe
   onStep?.(3)
   const [coverFeedback, interviewFeedback] = await Promise.all([
     coverLetter ? analyzeCoverLetter(apiKey, { jobRole, company, coverLetter, expSummary: expAnalysis }) : Promise.resolve(null),
-    interviewAnswer ? analyzeInterview(apiKey, { jobRole, company, interviewAnswer, expSummary: expAnalysis }) : Promise.resolve(null),
+    interviewAnswer ? analyzeInterview(apiKey, { jobRole, company, interviewAnswer, interviewQuestion, expSummary: expAnalysis }) : Promise.resolve(null),
   ])
 
   onStep?.(4)
