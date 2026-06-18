@@ -60,13 +60,11 @@ export default function InputPage() {
 
       // Supabase 저장 실패가 결과 페이지 이동을 막지 않도록 fire-and-forget
       if (user) {
-        supabase.from('analyses').insert({
-          user_id:    user.id,
-          job,
-          company:    company || null,
-          experience: exp,
-          result,
-        }).catch(() => {})
+        ;(async () => {
+          try {
+            await supabase.from('analyses').insert({ user_id: user.id, job, company: company || null, experience: exp, result })
+          } catch {}
+        })()
       }
 
       localStorage.removeItem(DRAFT_KEY)
