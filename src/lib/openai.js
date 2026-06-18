@@ -3,22 +3,31 @@ const BASE_URL = 'https://api.upstage.ai/v1/chat/completions'
 export const AI_MODEL = MODEL
 
 function safeParseJSON(text) {
-  // 1차: 마크다운 코드 펜스 제거 (```json 또는 ```)
+  // 1차: 코드 펜스 제거 (```json 또는 ```)
   let cleaned = text
     .replace(/^```(?:json)?\s*\n?/i, '')
     .replace(/\n?```\s*$/i, '')
     .trim()
 
-  try {
-    return JSON.parse(cleaned)
-  } catch {
-    // 2차: 텍스트 중간에서 JSON 객체 추출
-    const match = text.match(/\{[\s\S]*\}/)
-    if (match) {
-      try { return JSON.parse(match[0]) } catch {}
+  try { return JSON.parse(cleaned) } catch {}
+
+  // 2차: 균형 잡힌 중괄호로 JSON 객체 직접 추출
+  const start = text.indexOf('{')
+  if (start !== -1) {
+    let depth = 0
+    for (let i = start; i < text.length; i++) {
+      if (text[i] === '{') depth++
+      else if (text[i] === '}') {
+        depth--
+        if (depth === 0) {
+          try { return JSON.parse(text.slice(start, i + 1)) } catch {}
+          break
+        }
+      }
     }
-    throw new Error('JSON 파싱 실패')
   }
+
+  throw new Error('AI 응답 파싱 실패')
 }
 
 async function callAPI(apiKey, messages, jsonMode = true) {
