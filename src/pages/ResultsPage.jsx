@@ -96,29 +96,45 @@ function CompTab({ data }) {
 }
 
 function InterviewInputSection({ onSubmit, loading }) {
+  const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
   return (
     <div className="tab-content">
       <div className="result-card">
-        <h3>면접 답변 입력</h3>
-        <p style={{ color: 'var(--txt-2)', marginBottom: 12, fontSize: 14 }}>
-          면접에서 준비한 답변을 입력하면 AI가 논리성, 전달력, 개선점을 피드백합니다.
+        <h3>면접 피드백 받기</h3>
+        <p style={{ color: 'var(--txt-2)', marginBottom: 20, fontSize: 14 }}>
+          면접 질문과 답변을 입력하면 AI가 논리성, 전달력, 개선점을 피드백합니다.
         </p>
-        <textarea
-          className="form-textarea"
-          placeholder="면접 답변을 입력하세요..."
-          value={answer}
-          onChange={e => setAnswer(e.target.value)}
-          maxLength={1500}
-          rows={6}
-          style={{ marginBottom: 8 }}
-        />
-        <div className={`char-count${answer.length > 1350 ? ' warn' : ''}`} style={{ marginBottom: 16 }}>
-          {answer.length} / 1500
+
+        <div className="form-group" style={{ marginBottom: 16 }}>
+          <label className="form-label">면접 질문 <span style={{ color: 'var(--txt-3)', fontSize: 12, fontWeight: 500 }}>(선택)</span></label>
+          <textarea
+            className="form-textarea"
+            placeholder="면접에서 받은 질문을 입력하세요...&#10;예: 본인의 강점과 약점을 말해주세요."
+            value={question}
+            onChange={e => setQuestion(e.target.value)}
+            maxLength={500}
+            rows={3}
+          />
+          <div className={`char-count${question.length > 450 ? ' warn' : ''}`}>{question.length} / 500</div>
         </div>
+
+        <div className="form-group" style={{ marginBottom: 16 }}>
+          <label className="form-label">면접 답변 <span style={{ color: 'var(--red)', fontSize: 13, fontWeight: 800 }}>*</span></label>
+          <textarea
+            className="form-textarea"
+            placeholder="면접 답변을 입력하세요..."
+            value={answer}
+            onChange={e => setAnswer(e.target.value)}
+            maxLength={1500}
+            rows={6}
+          />
+          <div className={`char-count${answer.length > 1350 ? ' warn' : ''}`}>{answer.length} / 1500</div>
+        </div>
+
         <button
           className="btn btn-primary"
-          onClick={() => onSubmit(answer)}
+          onClick={() => onSubmit({ question, answer })}
           disabled={loading || answer.trim().length < 10}
         >
           {loading ? '분석 중...' : '면접 피드백 받기'}
@@ -263,14 +279,15 @@ export default function ResultsPage() {
   const [result, setResult] = useState(location.state?.result)
   const [interviewLoading, setInterviewLoading] = useState(false)
 
-  async function submitInterview(answer) {
-    if (!apiKey) { toast('OpenAI API 키를 먼저 설정해주세요.', 'warning'); return }
+  async function submitInterview({ question, answer }) {
+    if (!apiKey) { toast('API 키가 설정되지 않았습니다. 관리자에게 문의하세요.', 'warning'); return }
     setInterviewLoading(true)
     try {
       const feedback = await analyzeInterview(apiKey, {
         jobRole: result.jobRole,
         company: result.company,
         interviewAnswer: answer,
+        interviewQuestion: question || undefined,
         expSummary: result.expAnalysis,
       })
       setResult(prev => ({ ...prev, interviewFeedback: feedback }))
