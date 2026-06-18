@@ -2,29 +2,33 @@ const MODEL = 'solar-pro3'
 const BASE_URL = 'https://api.upstage.ai/v1/chat/completions'
 export const AI_MODEL = MODEL
 
+function extractJSONObject(text) {
+  // 문자열 내부의 { } 를 무시하는 정확한 JSON 추출
+  let start = -1, depth = 0, inString = false, escaped = false
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (escaped)          { escaped = false; continue }
+    if (ch === '\\' && inString) { escaped = true;  continue }
+    if (ch === '"')       { inString = !inString;   continue }
+    if (inString)         continue
+    if (ch === '{')       { if (depth++ === 0) start = i }
+    else if (ch === '}')  { if (--depth === 0 && start !== -1) return text.slice(start, i + 1) }
+  }
+  return null
+}
+
 function safeParseJSON(text) {
   // 1차: 코드 펜스 제거 (```json 또는 ```)
-  let cleaned = text
+  const cleaned = text
     .replace(/^```(?:json)?\s*\n?/i, '')
     .replace(/\n?```\s*$/i, '')
     .trim()
-
   try { return JSON.parse(cleaned) } catch {}
 
-  // 2차: 균형 잡힌 중괄호로 JSON 객체 직접 추출
-  const start = text.indexOf('{')
-  if (start !== -1) {
-    let depth = 0
-    for (let i = start; i < text.length; i++) {
-      if (text[i] === '{') depth++
-      else if (text[i] === '}') {
-        depth--
-        if (depth === 0) {
-          try { return JSON.parse(text.slice(start, i + 1)) } catch {}
-          break
-        }
-      }
-    }
+  // 2차: 문자열 내부 중괄호를 올바르게 무시하며 JSON 추출
+  const extracted = extractJSONObject(text)
+  if (extracted) {
+    try { return JSON.parse(extracted) } catch {}
   }
 
   throw new Error('AI 응답 파싱 실패')
